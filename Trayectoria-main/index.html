@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trayectoria espacial · Matemática III</title>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+<script>window.Plotly||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"><\/script>')</script>
+<style>
+:root{--bg:#f6f7fb;--pn:#fff;--tx:#1b1f2a;--mu:#667085;--bd:#e3e6ee;--pr:#1d3557;--ok:#2a9d8f;--bad:#e63946}
+*{box-sizing:border-box}body{margin:0;font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
+aside{width:300px;flex:none;background:var(--pn);border-right:1px solid var(--bd);padding:14px;position:sticky;top:0;height:100vh;overflow:auto}
+main{flex:1;min-width:0;padding:18px 24px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:18px;margin:0 0 12px}h3{font-size:15px;margin:14px 0 6px}
+nav button{display:block;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:8px;cursor:pointer;font:inherit;color:var(--tx)}
+nav button.on{background:var(--pr);color:#fff}nav button:hover:not(.on){background:#eef1f8}
+.ctl{margin:8px 0}.ctl label{display:flex;justify-content:space-between;color:var(--mu);font-size:12px}
+.ctl .row{display:flex;gap:6px;align-items:center}.ctl input[type=range]{flex:1}.ctl input[type=number]{width:72px}
+input,select,textarea,button.b{font:inherit;padding:5px 7px;border:1px solid var(--bd);border-radius:6px;background:#fff}
+button.b{cursor:pointer}details{margin-top:10px}summary{cursor:pointer;color:var(--mu)}
+.card{background:var(--pn);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+.kp div{background:var(--pn);border:1px solid var(--bd);border-radius:8px;padding:8px}.kp b{display:block;font-size:18px}.kp span{color:var(--mu);font-size:12px}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{border:1px solid var(--bd);padding:5px 8px;text-align:left}th{background:#eef1f8}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
+.alert{padding:10px 12px;border-radius:8px;margin-bottom:10px}.alert.ok{background:#e6f6f4}.alert.bad{background:#fdeaec}
+.err{background:#fff3cd;border:1px solid #ffe08a;border-radius:8px;padding:12px;margin:10px 0}
+.tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}.tabs button{border:1px solid var(--bd);background:#fff;padding:6px 12px;border-radius:8px;cursor:pointer}.tabs button.on{background:var(--pr);color:#fff}
+.sec{display:none}.sec.on{display:block}.tab{display:none}.tab.on{display:block}
+code,.f{font-family:ui-monospace,Menlo,monospace;background:#eef1f8;padding:2px 6px;border-radius:4px;display:inline-block;margin:2px 0}
+#toasts{position:fixed;right:16px;top:16px;z-index:9;display:flex;flex-direction:column;gap:8px;max-width:340px}
+.toast{background:#222;color:#fff;padding:10px 12px;border-radius:8px;box-shadow:0 4px 14px #0004;animation:in .2s}
+.toast.bad{border-left:5px solid var(--bad)}.toast.ok{border-left:5px solid var(--ok)}@keyframes in{from{opacity:0;transform:translateX(20px)}}
+.opts label{margin-right:14px;white-space:nowrap}.mu{color:var(--mu)}
+@media(max-width:860px){body{flex-direction:column}aside{width:100%;height:auto;position:static}.grid2,.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div id="fatal" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff3cd;border-top:2px solid #e0a800;padding:10px 16px"></div>
+<aside>
+  <h2>🛰️ Trayectoria espacial</h2>
+  <nav id="nav"></nav>
+  <h3>Parámetros</h3>
+  <div class="ctl"><label>Configuración activa</label><select id="active" style="width:100%"></select></div>
+  <div id="sliders"></div>
+  <button class="b" id="reset">Restablecer esta configuración</button>
+  <div id="gl"></div>
+  <details><summary>Condiciones de operación</summary><div id="limits"></div></details>
+</aside>
+<main>
+<section class="sec" id="s0">
+  <h1>Sistema de análisis y optimización de una trayectoria espacial</h1>
+  <p class="mu">Proyecto integrador · Matemática III · Aplicación interactiva</p>
+  <div class="card"><b>Integrantes</b> (editable, uno por línea)<br>
+  <textarea id="team" rows="5" style="width:100%;max-width:520px;margin-top:6px">Eduardo Antonio Morales Alfaro — MA202402
+Ronald Oswaldo Hernandez Rivera — HR202302
+Cristofer Cesar Rosales Garcia — RG202502
+Brayan Alexander Orellana Garcia — OG202301</textarea></div>
+  <div class="card">Elige una sección en el menú, ajusta <b>a, b, c</b>, el instante <b>t</b> y los límites: el visor 3D, las gráficas, las alertas, la comparación y la recomendación se recalculan al instante.<br><b>Pregunta central:</b> ¿la trayectoria propuesta es adecuada para la misión bajo las condiciones de operación?</div>
+</section>
+
+<section class="sec" id="s1">
+  <h2>Planteamiento y modelo matemático</h2>
+  <div class="card">Un vehículo autónomo inspecciona una estructura industrial siguiendo una trayectoria 3D y debe cumplir límites de tiempo, rapidez, aceleración, temperatura y curvatura.<br>
+  <span class="f">r(t) = ((a+bt)·cos t, (a+bt)·sen t, c·t), 0 ≤ t ≤ 4π</span><br>
+  <span class="f">T(x,y,z) = 20 + 4x − 3y + 2z + x² + y² + 2z² − xy</span></div>
+  <div class="grid2">
+  <div class="card"><b>Cinemática y geometría</b><br>
+  <span class="f">v = r′, a = r″, rapidez = |r′|</span><br>
+  <span class="f">κ = |r′×r″| / |r′|³ · τ = (r′×r″)·r‴ / |r′×r″|²</span><br>
+  <span class="f">T̂ = r′/|r′|, B̂ = r′×r″/|r′×r″|, N̂ = B̂×T̂</span><br>
+  <span class="f">s(t) = ∫₀ᵗ |r′(u)| du</span></div>
+  <div class="card"><b>Entorno y análisis local</b><br>
+  <span class="f">∇T = (4+2x−y, −3+2y−x, 2+4z)</span><br>
+  <span class="f">dT/dt = ∇T·r′ · D_T̂ T = ∇T·T̂</span><br>
+  <span class="f">L(p) = T(p₀) + ∇T(p₀)·(p−p₀)</span><br>
+  <span class="f">T(p₀+h) − L = ½ hᵀHh, H = [[2,−1,0],[−1,2,0],[0,0,4]]</span></div></div>
+  <div class="card">Condiciones iniciales: tiempo ≤ 4π · rapidez ≤ 3.00 · aceleración ≤ 2.50 · T ≤ 50 · κ ≤ 0.50 (modificables en el panel lateral). Como T es cuadrática, el error de la aproximación lineal es exactamente ½ hᵀHh.</div>
+</section>
+
+<section class="sec" id="s2">
+  <h2>Visor 3D y controles</h2><div class="errbox"></div><div class="alertbox"></div>
+  <div class="opts card"><label><input type="checkbox" id="o_field" checked> Campo (isosuperficies)</label><label><input type="checkbox" id="o_vec" checked> Vectores v, a, ∇T</label><label><input type="checkbox" id="o_fre" checked> Triedro de Frenet</label><label><input type="checkbox" id="o_pla" checked> Plano tangente</label><label><input type="checkbox" id="o_vio" checked> Zonas de incumplimiento</label></div>
+  <div class="card"><div id="p3d" style="height:620px"></div><div class="mu">Rota con el ratón, zoom con la rueda, pan con clic derecho. El color es la temperatura; la superficie roja es T = límite (el interior es la zona permitida).</div></div>
+</section>
+
+<section class="sec" id="s3">
+  <h2>Panel de análisis dinámico</h2><div class="errbox"></div><div class="alertbox"></div><div class="kp" id="kp"></div>
+  <div class="tabs" id="tabs3"></div>
+  <div class="tab" id="t0"><div class="grid2"><div id="d1"></div><div id="d2"></div><div id="d3"></div><div id="d4"></div></div></div>
+  <div class="tab" id="t1"><div class="card" id="envtxt"></div><div class="grid3"><div id="e1"></div><div id="e2"></div><div id="e3"></div></div></div>
+  <div class="tab" id="t2"><div class="card" id="geotxt"></div><div class="grid2"><div id="g1"></div><div id="g2"></div></div></div>
+  <div class="tab" id="t3"><div class="kp" id="kd"></div><div id="a1"></div></div>
+  <div class="tab" id="t4"><div class="card">Dirección del desplazamiento: <select id="dir"><option value="T">Tangente T̂ (avance)</option><option value="N">Normal N̂ (giro)</option><option value="B">Binormal B̂</option><option value="G">Gradiente ∇T/|∇T|</option></select>
+  <div id="loctxt" style="margin-top:8px"></div></div><div class="grid2"><div id="l1"></div><div class="card" id="loc2"></div></div></div>
+</section>
+
+<section class="sec" id="s4">
+  <h2>Comparación de configuraciones</h2><div class="errbox"></div>
+  <div class="card" id="cmp" style="overflow:auto"></div>
+  <div class="grid2"><div class="card"><div id="c1"></div></div><div class="card"><div id="c2"></div></div></div>
+  <div class="mu">Edita cada configuración eligiéndola en «Configuración activa».</div>
+</section>
+
+<section class="sec" id="s5">
+  <h2>Resultados, recomendación final y justificación</h2>
+  <div class="card" id="rec"></div><div class="card" id="evid" style="overflow:auto"></div><div class="card" id="just"></div>
+  <div class="card"><b>Conclusiones propias del grupo</b> (editable)<br><textarea id="notes" rows="5" style="width:100%;margin-top:6px"></textarea></div>
+</section>
+</main>
+
+
+<script>
+function fatal(m){var b=document.getElementById('fatal');if(b){b.style.display='block';b.innerHTML='⚠️ <b>La app no pudo iniciar:</b> '+m}}
+window.addEventListener('error',function(e){fatal(String(e.message||e.error))});
+if(typeof Plotly==='undefined')fatal('no se pudo cargar la librería Plotly.js (revisa tu conexión a internet o si tu red bloquea cdn.jsdelivr.net / cdnjs.cloudflare.com). Las gráficas no se mostrarán.');
+</script>
+<script>
+/* =================== NÚCLEO MATEMÁTICO (equivalente a core/ en Python) =================== */
+class Err extends Error{}
+const EPS=1e-9, PI=Math.PI;
+const dot=(u,v)=>u[0]*v[0]+u[1]*v[1]+u[2]*v[2], nrm=u=>Math.hypot(u[0],u[1],u[2]);
+const sc=(u,k)=>[u[0]*k,u[1]*k,u[2]*k], add=(u,v)=>[u[0]+v[0],u[1]+v[1],u[2]+v[2]];
+const cross=(u,v)=>[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+const Tf=([x,y,z])=>20+4*x-3*y+2*z+x*x+y*y+2*z*z-x*y;
+const grad=([x,y,z])=>[4+2*x-y,-3+2*y-x,2+4*z];
+const Hq=h=>dot(h,[2*h[0]-h[1],-h[0]+2*h[1],4*h[2]]);               // hᵀHh
+function kin(p,t){const rho=p.a+p.b*t,C=Math.cos(t),S=Math.sin(t);
+  return{r:[rho*C,rho*S,p.c*t],v:[p.b*C-rho*S,p.b*S+rho*C,p.c],a:[-2*p.b*S-rho*C,2*p.b*C-rho*S,0],j:[-3*p.b*C+rho*S,-3*p.b*S-rho*C,0]}}
+const LNAMES={tmax:'Tiempo máximo',vmax:'Rapidez máxima',amax:'Aceleración máxima',Tmax:'Temperatura máxima',kmax:'Curvatura máxima'};
+function validate(p,L){
+  for(const k of['a','b','c','tend'])if(typeof p[k]!=='number'||!Number.isFinite(p[k]))throw new Err(`El parámetro «${k}» debe ser un número finito.`);
+  if(p.tend<=0)throw new Err('La duración t_end debe ser mayor que 0.');
+  for(const k in LNAMES)if(!(L[k]>0)||!Number.isFinite(L[k]))throw new Err(`${LNAMES[k]}: el límite debe ser un número positivo.`)}
+function analyze(p,L,n=600){
+  validate(p,L);
+  const o={p,L,t:[],r:[],v:[],a:[],sp:[],ac:[],ku:[],tau:[],T:[],g:[],dTdt:[],dd:[],Tn:[],N:[],B:[],s:[0]};
+  for(let i=0;i<n;i++){
+    const t=p.tend*i/(n-1),k=kin(p,t),sp=nrm(k.v);
+    if(sp<EPS)throw new Err(`El vector velocidad es nulo en t≈${t.toFixed(3)}: la tangente y la curvatura no están definidas.`);
+    const cr=cross(k.v,k.a),cn=nrm(cr);
+    if(cn<EPS)throw new Err(`En t≈${t.toFixed(3)} r′×r″ es nulo (la trayectoria degenera en una recta): el triedro de Frenet no está definido. Cambia a, b o c.`);
+    const Tn=sc(k.v,1/sp),B=sc(cr,1/cn),g=grad(k.r);
+    o.t.push(t);o.r.push(k.r);o.v.push(k.v);o.a.push(k.a);o.sp.push(sp);o.ac.push(nrm(k.a));
+    o.ku.push(cn/sp**3);o.tau.push(dot(cr,k.j)/cn**2);o.T.push(Tf(k.r));o.g.push(g);
+    o.dTdt.push(dot(g,k.v));o.dd.push(dot(g,Tn));o.Tn.push(Tn);o.B.push(B);o.N.push(cross(B,Tn));
+    if(i)o.s.push(o.s[i-1]+.5*(sp+o.sp[i-1])*(t-o.t[i-1]));
+  }
+  o.arc=o.s[n-1];o.straight=nrm(add(o.r[n-1],sc(o.r[0],-1)));o.ratio=o.arc/o.straight;
+  o.viol=[];
+  if(p.tend>L.tmax+1e-9)o.viol.push({key:'time',name:'Tiempo máximo de recorrido',tf:L.tmax,pf:o.r[Math.min(n-1,Math.floor(L.tmax/p.tend*(n-1)))],tp:p.tend,pp:o.r[n-1],val:p.tend,lim:L.tmax,idx:o.t.map((t,i)=>t>L.tmax?i:-1).filter(i=>i>=0)});
+  for(const[key,name,arr,lim]of[['speed','Rapidez máxima',o.sp,L.vmax],['accel','Aceleración máxima',o.ac,L.amax],['temp','Temperatura máxima',o.T,L.Tmax],['curv','Curvatura máxima',o.ku,L.kmax]]){
+    const idx=arr.map((v,i)=>v>lim?i:-1).filter(i=>i>=0);if(!idx.length)continue;
+    let pk=idx[0];for(const i of idx)if(arr[i]>arr[pk])pk=i;
+    o.viol.push({key,name,tf:o.t[idx[0]],pf:o.r[idx[0]],tp:o.t[pk],pp:o.r[pk],val:arr[pk],lim,idx})}
+  o.ok=!o.viol.length;return o}
+const at=(an,t)=>Math.min(an.t.length-1,Math.max(0,Math.round(t/an.p.tend*(an.t.length-1))));
+function localDir(P0,u,hs){const un=sc(u,1/nrm(u)),T0=Tf(P0),g=grad(P0);
+  return hs.map(h=>{const d=sc(un,h),real=Tf(add(P0,d)),lin=T0+dot(g,d),quad=lin+.5*Hq(d);
+    return{h,real,lin,quad,el:Math.abs(real-lin),er:100*Math.abs(real-lin)/Math.abs(real),eq:Math.abs(real-quad)}})}
+function localTraj(p,t0,dts){const k=kin(p,t0),T0=Tf(k.r),rate=dot(grad(k.r),k.v);
+  return dts.map(dt=>{const real=Tf(kin(p,t0+dt).r),lin=T0+rate*dt;return{dt,real,lin,e:Math.abs(real-lin)}})}
+function score(an){return[an.viol.length,an.viol.reduce((s,v)=>s+Math.max(v.val-v.lim,0)/v.lim,0),an.arc]}
+function rank(R){const names=Object.keys(R).filter(k=>R[k].an);
+  return names.sort((x,y)=>{const a=score(R[x].an),b=score(R[y].an);return a[0]-b[0]||a[1]-b[1]||a[2]-b[2]})}
+
+/* =================== ESTADO Y CONTROLES =================== */
+const DEF={'Original':{a:2,b:.5,c:.5},'Propuesta 1':{a:2.2,b:0,c:.1},'Propuesta 2':{a:2.1,b:.02,c:.1}};
+const cfg=JSON.parse(JSON.stringify(DEF));
+const LDEF={tmax:4*PI,vmax:3,amax:2.5,Tmax:50,kmax:.5};
+const L={...LDEF};
+const S={sec:0,tab:0,active:'Original',tend:4*PI,tsel:0,sig:''};
+const $=id=>document.getElementById(id), f=(x,d=3)=>Number(x).toFixed(d);
+const SECS=['1 · Título e integrantes','2 · Planteamiento y modelo','3 · Visor 3D y parámetros','4 · Análisis dinámico','5 · Comparación','6 · Resultados y recomendación'];
+const COL={'Original':'#1d3557','Propuesta 1':'#2a9d8f','Propuesta 2':'#f77f00'};
+let R={};
+
+function mk(parent,id,label,min,max,step,val,cb){
+  const d=document.createElement('div');d.className='ctl';
+  d.innerHTML=`<label>${label}</label><div class="row"><input type="range" min="${min}" max="${max}" step="${step}"><input type="number" step="${step}"></div>`;
+  const [r,n]=d.querySelectorAll('input');r.value=n.value=val;d.id=id;
+  const set=v=>{r.value=n.value=v;cb(parseFloat(v))};
+  r.oninput=()=>set(r.value);n.onchange=()=>{const v=parseFloat(n.value);cb(v)};
+  parent.appendChild(d);d.set=(v)=>{r.max=Math.max(+r.max,v);r.value=n.value=v};d.range=(lo,hi)=>{r.min=lo;r.max=hi};return d}
+SECS.forEach((s,i)=>{const b=document.createElement('button');b.textContent=s;b.onclick=()=>{S.sec=i;render()};$('nav').appendChild(b)});
+Object.keys(DEF).forEach(k=>$('active').add(new Option(k,k)));
+const W={};
+['a','b','c'].forEach(k=>W[k]=mk($('sliders'),'w'+k,k,k==='a'?-10:-2,k==='a'?10:2,.01,cfg.Original[k],v=>{cfg[S.active][k]=v;update()}));
+W.tend=mk($('sliders'),'wte','Duración del recorrido t_end',1,6*PI,.01,S.tend,v=>{S.tend=v;W.tsel.range(0,v);if(S.tsel>v){S.tsel=v;W.tsel.set(v)}update()});
+W.tsel=mk($('sliders'),'wts','Instante seleccionado t',0,S.tend,.01,0,v=>{S.tsel=v;update(true)});
+for(const k in LNAMES){const d=document.createElement('div');d.className='ctl';d.innerHTML=`<label>${LNAMES[k]}</label><input type="number" step="any" min="0" value="${LDEF[k]}" style="width:100%">`;
+  d.querySelector('input').oninput=e=>{L[k]=parseFloat(e.target.value);update()};$('limits').appendChild(d)}
+$('active').onchange=e=>{S.active=e.target.value;syncSliders();update()};
+$('reset').onclick=()=>{cfg[S.active]={...DEF[S.active]};syncSliders();update()};
+function syncSliders(){['a','b','c'].forEach(k=>W[k].set(cfg[S.active][k]))}
+document.querySelectorAll('.opts input').forEach(i=>i.onchange=()=>update(true));
+$('dir').onchange=()=>update(true);
+try{$('team').value=localStorage.getItem('team_v2')||$('team').value;$('notes').value=localStorage.getItem('notes')||''}catch(e){}
+$('team').oninput=e=>{try{localStorage.setItem('team_v2',e.target.value)}catch(_){}};
+$('notes').oninput=e=>{try{localStorage.setItem('notes',e.target.value)}catch(_){}};
+const TN=['Gráficas','Entorno','Geometría','Distancia','Análisis local'];
+TN.forEach((n,i)=>{const b=document.createElement('button');b.textContent=n;b.onclick=()=>{S.tab=i;render()};$('tabs3').appendChild(b)});
+
+function toast(msg,cls){const d=document.createElement('div');d.className='toast '+cls;d.textContent=msg;$('toasts').appendChild(d);setTimeout(()=>d.remove(),5500)}
+
+/* =================== CÁLCULO Y RENDER =================== */
+function update(onlyView){
+  if(!onlyView){
+    R={};for(const n in cfg){try{R[n]={an:analyze({...cfg[n],tend:S.tend},L)}}catch(e){if(!(e instanceof Err))throw e;R[n]={err:e.message}}}
+    const sig=JSON.stringify([S.active,cfg[S.active],S.tend,L]);
+    if(sig!==S.sig){S.sig=sig;const r=R[S.active];
+      if(r.err)toast('🚫 '+r.err,'bad');else{if(r.an.ok)toast(`✅ ${S.active}: cumple todas las condiciones`,'ok');
+        r.an.viol.slice(0,5).forEach(v=>toast(`⚠️ ${v.name}: ${f(v.val,2)} > ${f(v.lim,2)} (t=${f(v.tf,2)})`,'bad'))}}}
+  render()}
+function alertHTML(an){
+  if(an.ok)return`<div class="alert ok">✅ <b>${S.active} cumple</b> todas las condiciones de operación.</div>`;
+  return`<div class="alert bad">❌ <b>${S.active} incumple ${an.viol.length} condición(es).</b></div><div style="overflow:auto"><table><tr><th>Condición</th><th>t (primer incumplimiento)</th><th>Posición (x,y,z)</th><th>t del pico</th><th>Valor registrado</th><th>Límite</th><th>Exceso</th><th>Exceso %</th></tr>`+
+   an.viol.map(v=>`<tr><td>${v.name}</td><td>${f(v.tf)}</td><td>(${v.pf.map(x=>f(x,2)).join(', ')})</td><td>${f(v.tp)}</td><td class="bad">${f(v.val)}</td><td>${f(v.lim)}</td><td>${f(v.val-v.lim)}</td><td>${f(100*(v.val-v.lim)/v.lim,1)}</td></tr>`).join('')+`</table></div>`}
+function render(){
+  [...$('nav').children].forEach((b,i)=>b.classList.toggle('on',i===S.sec));
+  document.querySelectorAll('.sec').forEach((s,i)=>s.classList.toggle('on',i===S.sec));
+  const r=R[S.active],an=r&&r.an;
+  document.querySelectorAll('.errbox').forEach(e=>e.innerHTML=r&&r.err?`<div class="err">🚫 <b>Configuración «${S.active}» no válida.</b> ${r.err}<br>Corrige los parámetros: el renderizado queda bloqueado hasta entonces.</div>`:'');
+  document.querySelectorAll('.alertbox').forEach(e=>e.innerHTML=an?alertHTML(an):'');
+  if(S.sec===2&&an)view3d(an);
+  if(S.sec===3){document.querySelectorAll('#tabs3 button').forEach((b,i)=>b.classList.toggle('on',i===S.tab));
+    document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',i===S.tab));if(an)dash(an)}
+  if(S.sec===4)compare();if(S.sec===5)results()}
+
+const LAY={margin:{l:42,r:10,t:30,b:34},height:260,font:{size:11}};
+function line2d(div,title,x,y,lim,ts,extra){
+  const tr=[{x,y,mode:'lines',line:{color:'#1d3557'},showlegend:false}];
+  if(lim!=null){const bx=[],by=[];y.forEach((v,i)=>{if(v>lim){bx.push(x[i]);by.push(v)}});if(bx.length)tr.push({x:bx,y:by,mode:'markers',marker:{color:'#e63946',size:4},showlegend:false})}
+  const sh=[{type:'line',x0:ts,x1:ts,yref:'paper',y0:0,y1:1,line:{color:'orange',width:2}}];
+  if(lim!=null)sh.push({type:'line',xref:'paper',x0:0,x1:1,y0:lim,y1:lim,line:{color:'#e63946',dash:'dash'}});
+  Plotly.react($(div),(extra||[]).concat(tr),{...LAY,title:{text:title,font:{size:13}},shapes:sh,xaxis:{title:'t'}},{responsive:true,displaylogo:false})}
+function arrow(p,d,color,name,k){const q=add(p,sc(d,k));return{type:'scatter3d',mode:'lines+markers',x:[p[0],q[0]],y:[p[1],q[1]],z:[p[2],q[2]],line:{color,width:6},marker:{size:[0,4],color},name,hoverinfo:'name'}}
+function view3d(an){
+  const i=at(an,S.tsel),p0=an.r[i],X=an.r.map(q=>q[0]),Y=an.r.map(q=>q[1]),Z=an.r.map(q=>q[2]);
+  const tr=[{type:'scatter3d',mode:'lines',x:X,y:Y,z:Z,name:'Trayectoria',line:{color:an.T,colorscale:'Viridis',width:5,colorbar:{title:'T',len:.6,thickness:12}},text:an.t.map((t,j)=>`t=${f(t,2)} · T=${f(an.T[j],1)}`),hoverinfo:'text'}];
+  if($('o_vio').checked)an.viol.forEach(v=>tr.push({type:'scatter3d',mode:'markers',x:v.idx.map(j=>X[j]),y:v.idx.map(j=>Y[j]),z:v.idx.map(j=>Z[j]),marker:{size:3,color:'#e63946'},name:'⚠ '+v.name}));
+  tr.push({type:'scatter3d',mode:'markers',x:[p0[0]],y:[p0[1]],z:[p0[2]],marker:{size:7,color:'orange',symbol:'diamond',line:{color:'black',width:1}},name:`Punto t=${f(an.t[i],2)}`});
+  const rg=k=>Math.max(...an.r.map(q=>q[k]))-Math.min(...an.r.map(q=>q[k])),ext=Math.max(rg(0),rg(1),rg(2))||1,s=ext/6;
+  const g=an.g[i],gn=nrm(g);
+  if($('o_vec').checked){tr.push(arrow(p0,sc(an.v[i],1/an.sp[i]),'#1d3557','Velocidad (dir.)',s));
+    if(an.ac[i]>EPS)tr.push(arrow(p0,sc(an.a[i],1/an.ac[i]),'#f77f00','Aceleración (dir.)',s));
+    if(gn>EPS)tr.push(arrow(p0,sc(g,1/gn),'#7b2cbf','Gradiente ∇T',s))}
+  if($('o_fre').checked){tr.push(arrow(p0,an.Tn[i],'#2a9d8f','T̂ (tangente)',s*.8),arrow(p0,an.N[i],'#e9c46a','N̂ (normal)',s*.8),arrow(p0,an.B[i],'#264653','B̂ (binormal)',s*.8))}
+  if($('o_pla').checked&&gn>EPS){const n=sc(g,1/gn);let u1=cross(n,[0,0,1]);if(nrm(u1)<1e-6)u1=cross(n,[0,1,0]);u1=sc(u1,1/nrm(u1));const u2=cross(n,u1),k=s*1.2;
+    const C=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>add(p0,add(sc(u1,a*k),sc(u2,b*k))));
+    tr.push({type:'mesh3d',x:C.map(c=>c[0]),y:C.map(c=>c[1]),z:C.map(c=>c[2]),i:[0,0],j:[1,2],k:[2,3],color:'#7b2cbf',opacity:.3,name:'Plano tangente a T=cte',showlegend:true})}
+  if($('o_field').checked){const lo=[0,1,2].map(k=>Math.min(...an.r.map(q=>q[k]))-1),hi=[0,1,2].map(k=>Math.max(...an.r.map(q=>q[k]))+1),m=14,xs=[],ys=[],zs=[],vs=[];
+    for(let a=0;a<m;a++)for(let b=0;b<m;b++)for(let c=0;c<m;c++){const q=[lo[0]+(hi[0]-lo[0])*a/(m-1),lo[1]+(hi[1]-lo[1])*b/(m-1),lo[2]+(hi[2]-lo[2])*c/(m-1)];xs.push(q[0]);ys.push(q[1]);zs.push(q[2]);vs.push(Tf(q))}
+    const vmin=Math.min(...vs),vmax=Math.max(...vs);
+    [[an.L.Tmax,'#e63946',`T = ${f(an.L.Tmax,0)} (límite)`],[an.T[i],'#4895ef',`T = ${f(an.T[i],1)} (punto)`]].forEach(([lv,col,nm])=>{
+      if(lv>vmin&&lv<vmax)tr.push({type:'isosurface',x:xs,y:ys,z:zs,value:vs,isomin:lv,isomax:lv,surface_count:1,opacity:.18,colorscale:[[0,col],[1,col]],showscale:false,caps:{x:{show:false},y:{show:false},z:{show:false}},name:nm,showlegend:true})})}
+  Plotly.react($('p3d'),tr,{margin:{l:0,r:0,t:0,b:0},scene:{aspectmode:'data',xaxis:{title:'x'},yaxis:{title:'y'},zaxis:{title:'z'}},legend:{orientation:'h',y:-.02}},{responsive:true,displaylogo:false})}
+function dash(an){
+  const i=at(an,S.tsel),ts=an.t[i],g=an.g[i];
+  $('kp').innerHTML=[['t',f(ts,2)],['Rapidez',f(an.sp[i])],['Aceleración',f(an.ac[i])],['Curvatura',f(an.ku[i])],['Temperatura',f(an.T[i],2)]].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join('');
+  if(S.tab===0){line2d('d1','Rapidez |r′|',an.t,an.sp,an.L.vmax,ts);line2d('d2','Aceleración |r″|',an.t,an.ac,an.L.amax,ts);line2d('d3','Curvatura κ',an.t,an.ku,an.L.kmax,ts);line2d('d4','Temperatura T(r(t))',an.t,an.T,an.L.Tmax,ts)}
+  if(S.tab===1){const jm=an.dTdt.reduce((m,v,j)=>Math.abs(v)>Math.abs(an.dTdt[m])?j:m,0),mx=an.T.indexOf(Math.max(...an.T)),mn=an.T.indexOf(Math.min(...an.T));
+    $('envtxt').innerHTML=`<b>Posición:</b> (${an.r[i].map(x=>f(x)).join(', ')}) · <b>∇T</b> = (${g.map(x=>f(x)).join(', ')}) · |∇T| = ${f(nrm(g))} (máx. tasa de cambio por unidad de distancia)<br><b>D_T̂ T</b> = ${f(an.dd[i])}; <b>dT/dt</b> = ${f(an.dTdt[i])} → el vehículo va hacia zonas <b>${an.dd[i]>0?'más calientes':'más frías'}</b>.<br>T varía más rápido en t = ${f(an.t[jm],2)} (|dT/dt| = ${f(Math.abs(an.dTdt[jm]),2)}). T máx = ${f(an.T[mx],2)} (t=${f(an.t[mx],2)}); T mín = ${f(an.T[mn],2)} (t=${f(an.t[mn],2)}).`;
+    line2d('e1','T(r(t))',an.t,an.T,an.L.Tmax,ts);line2d('e2','dT/dt = ∇T·r′',an.t,an.dTdt,null,ts);line2d('e3','D_T̂ T = ∇T·T̂',an.t,an.dd,null,ts)}
+  if(S.tab===2){const jm=an.ku.indexOf(Math.max(...an.ku)),row=(n,v)=>`<tr><td>${n}</td>${v.map(x=>`<td>${f(x,4)}</td>`).join('')}</tr>`;
+    $('geotxt').innerHTML=`<table style="max-width:460px"><tr><th>Vector</th><th>x</th><th>y</th><th>z</th></tr>${row('r',an.r[i])}${row('v = r′',an.v[i])}${row('a = r″',an.a[i])}${row('T̂',an.Tn[i])}${row('N̂',an.N[i])}${row('B̂',an.B[i])}</table><br>κ = ${f(an.ku[i],4)} (radio de curvatura ${f(1/an.ku[i],2)}) · τ = ${f(an.tau[i],4)}<br>Mayor cambio de dirección: t = ${f(an.t[jm],2)}, κ = ${f(an.ku[jm],4)} (${f(100*an.ku[jm]/an.L.kmax,0)} % del límite).`;
+    line2d('g1','Giro de la tangente respecto a t=0 (°)',an.t,an.Tn.map(u=>Math.acos(Math.max(-1,Math.min(1,dot(u,an.Tn[0]))))*180/PI),null,ts);
+    line2d('g2','Torsión τ (y κ en rojo)',an.t,an.tau,null,ts,[{x:an.t,y:an.ku,mode:'lines',line:{color:'#e63946'},showlegend:false}])}
+  if(S.tab===3){$('kd').innerHTML=[['Longitud de arco total',f(an.arc)],['Distancia directa',f(an.straight)],['Recorrido / directa',f(an.ratio,2)+'×'],['Acumulado hasta t',f(an.s[i])+` (${f(100*an.s[i]/an.arc,1)} %)`]].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join('');
+    line2d('a1','Longitud de arco s(t) y distancia directa |r(t) − r(0)|',an.t,an.s,null,ts,[{x:an.t,y:an.r.map(q=>nrm(add(q,sc(an.r[0],-1)))),mode:'lines',line:{color:'#f77f00'},showlegend:false}])}
+  if(S.tab===4){const d=$('dir').value,u={T:an.Tn[i],N:an.N[i],B:an.B[i],G:g}[d];
+    if(nrm(u)<EPS){$('loctxt').innerHTML='<span class="bad">El gradiente es nulo aquí: el campo es localmente plano. Elige otra dirección.</span>';return}
+    const hs=[.01,.05,.1,.25,.5,1],rows=localDir(an.r[i],u,hs),tr=localTraj(an.p,ts,[-.5,-.25,.25,.5,1]);
+    $('loctxt').innerHTML=`T(p₀) = ${f(an.T[i])} · modelo lineal: L(p) = T(p₀) + ∇T·(p − p₀)<table style="margin-top:6px"><tr><th>h</th><th>T real</th><th>T lineal</th><th>T cuadrática</th><th>Error lineal</th><th>Error lineal %</th><th>Error cuad.</th></tr>${rows.map(r=>`<tr><td>${r.h}</td><td>${f(r.real,4)}</td><td>${f(r.lin,4)}</td><td>${f(r.quad,4)}</td><td>${r.el.toExponential(2)}</td><td>${f(r.er,3)}</td><td>${r.eq.toExponential(1)}</td></tr>`).join('')}</table><span class="mu">El error lineal crece como h² (½ hᵀHh); el cuadrático es ≈ 0 porque T es un polinomio de grado 2.</span>`;
+    $('loc2').innerHTML=`<b>A lo largo de la trayectoria:</b> T(r(t₀+Δt)) ≈ T(t₀) + (dT/dt)·Δt<table style="margin-top:6px"><tr><th>Δt</th><th>T real</th><th>T lineal</th><th>Error</th></tr>${tr.map(r=>`<tr><td>${r.dt}</td><td>${f(r.real,4)}</td><td>${f(r.lin,4)}</td><td>${f(r.e,4)}</td></tr>`).join('')}</table>`;
+    Plotly.react($('l1'),[{x:hs,y:rows.map(r=>Math.max(r.el,1e-12)),mode:'lines+markers',name:'Error lineal'},{x:hs,y:rows.map(r=>Math.max(r.eq,1e-12)),mode:'lines+markers',name:'Error cuadrático'}],{...LAY,height:320,xaxis:{type:'log',title:'h'},yaxis:{type:'log',title:'|T real − aprox.|'},legend:{orientation:'h'}},{responsive:true,displaylogo:false})}}
+function compare(){
+  const names=Object.keys(cfg),ch=(v,l)=>`${f(v)} ${v<=l?'✅':'❌'} (≤ ${+l.toFixed(3)})`;
+  const rows=[['a',a=>a.p.a],['b',a=>a.p.b],['c',a=>a.p.c],['Estado',a=>a.ok?'<span class="ok">✅ CUMPLE</span>':`<span class="bad">❌ INCUMPLE (${a.viol.length})</span>`],
+   ['Condiciones incumplidas',a=>a.viol.map(v=>v.name.replace(' máxima','').replace(' máximo de recorrido','')).join(', ')||'Ninguna'],
+   ['Duración t_end',a=>ch(a.p.tend,a.L.tmax)],['Rapidez máx.',a=>ch(Math.max(...a.sp),a.L.vmax)],['Aceleración máx.',a=>ch(Math.max(...a.ac),a.L.amax)],
+   ['Curvatura máx.',a=>ch(Math.max(...a.ku),a.L.kmax)],['Temperatura máx.',a=>ch(Math.max(...a.T),a.L.Tmax)],['Longitud de arco',a=>f(a.arc)],['Distancia directa',a=>f(a.straight)],
+   ['Recorrido / directa',a=>f(a.ratio,2)+'×'],['T inicial → final',a=>`${f(a.T[0],2)} → ${f(a.T[a.T.length-1],2)}`]];
+  $('cmp').innerHTML=`<table><tr><th></th>${names.map(n=>`<th style="color:${COL[n]}">${n}</th>`).join('')}</tr>`+rows.map(([l,fn])=>`<tr><td><b>${l}</b></td>${names.map(n=>`<td>${R[n].an?fn(R[n].an):'—'}</td>`).join('')}</tr>`).join('')+`<tr><td><b>Validez</b></td>${names.map(n=>`<td>${R[n].err?'<span class="bad">🚫 '+R[n].err+'</span>':'Válida'}</td>`).join('')}</tr></table>`;
+  const ok=names.filter(n=>R[n].an);if(!ok.length)return;
+  Plotly.react($('c1'),ok.map(n=>{const a=R[n].an;return{type:'bar',name:n,marker:{color:COL[n]},x:['Rapidez','Aceleración','Curvatura','Temperatura'],y:[Math.max(...a.sp)/a.L.vmax,Math.max(...a.ac)/a.L.amax,Math.max(...a.ku)/a.L.kmax,Math.max(...a.T)/a.L.Tmax]}}),
+   {...LAY,height:380,barmode:'group',yaxis:{title:'máximo / límite'},shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:1,y1:1,line:{color:'#e63946',dash:'dash'}}],legend:{orientation:'h'}},{responsive:true,displaylogo:false});
+  Plotly.react($('c2'),ok.map(n=>{const a=R[n].an;return{type:'scatter3d',mode:'lines',name:n,line:{color:COL[n],width:5},x:a.r.map(q=>q[0]),y:a.r.map(q=>q[1]),z:a.r.map(q=>q[2])}}),
+   {margin:{l:0,r:0,t:0,b:0},height:380,scene:{aspectmode:'data'},legend:{orientation:'h'}},{responsive:true,displaylogo:false})}
+function results(){
+  const rk=rank(R);if(!rk.length){$('rec').innerHTML='<span class="bad">No hay ninguna configuración válida que evaluar.</span>';$('evid').innerHTML=$('just').innerHTML='';return}
+  const best=rk[0],b=R[best].an,o=R.Original.an;let t;
+  if(o&&o.ok)t='La trayectoria <b>original cumple</b> todas las condiciones: se recomienda mantenerla.';
+  else{t=o?`La trayectoria <b>original no es viable</b>: incumple ${o.viol.map(v=>v.name.toLowerCase()).join(', ')}.<br>`:'';
+    t+=best!=='Original'&&b.ok?`Se recomienda <b>${best}</b> (a=${b.p.a}, b=${b.p.b}, c=${b.p.c}): cumple todas las condiciones, con longitud de arco ${f(b.arc,2)} y distancia directa ${f(b.straight,2)}.`
+      :best!=='Original'?`Ninguna configuración cumple todo; la menos mala es <b>${best}</b> (${b.viol.length} incumplida(s)). Sigue ajustando a, b y c.`:'Ninguna propuesta mejora a la original; sigue ajustando a, b y c.'}
+  $('rec').innerHTML='<h3>Decisión</h3>'+t;
+  $('evid').innerHTML='<h3>Evidencia matemática</h3><table><tr><th>Configuración</th><th>(a, b, c)</th><th>Cumple</th><th>v máx</th><th>a máx</th><th>κ máx</th><th>T máx</th><th>Longitud</th></tr>'+rk.map(n=>{const a=R[n].an;return`<tr><td>${n}</td><td>(${a.p.a}, ${a.p.b}, ${a.p.c})</td><td>${a.ok?'<span class="ok">Sí</span>':'<span class="bad">No</span>'}</td><td>${f(Math.max(...a.sp),2)}</td><td>${f(Math.max(...a.ac),2)}</td><td>${f(Math.max(...a.ku),3)}</td><td>${f(Math.max(...a.T),1)}</td><td>${f(a.arc,2)}</td></tr>`}).join('')+'</table>';
+  $('just').innerHTML=`<h3>Justificación</h3>En una espiral suave, rapidez = √((a+bt)²+b²+c²) y aceleración = √((a+bt)²+4b²): ambas crecen con el radio a+bt, mientras que la curvatura ≈ 1/radio disminuye. El radio debe ser lo bastante grande para κ ≤ ${L.kmax} y lo bastante pequeño para v ≤ ${L.vmax} y |a| ≤ ${L.amax}; un c pequeño evita subir en z y limita T (término 2z+2z²). <b>${best}</b> usa ${f(100*Math.max(...b.sp)/L.vmax,0)} % del límite de rapidez, ${f(100*Math.max(...b.ac)/L.amax,0)} % de aceleración, ${f(100*Math.max(...b.ku)/L.kmax,0)} % de curvatura y ${f(100*Math.max(...b.T)/L.Tmax,0)} % de temperatura.`}
+update();
+</script>
+</body>
+</html>
